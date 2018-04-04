@@ -14,7 +14,7 @@ class Actor:
             action_low (array): Min value of each action dimension
             action_high (array): Max value of each action dimension
         """
-        self.state_size = statesize
+        self.state_size = state_size
         self.action_size = action_size
         self.action_low = action_low
         self.action_high = action_high
