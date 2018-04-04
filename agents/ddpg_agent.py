@@ -60,7 +60,7 @@ class DDPG():
 
     def act(self, states):
         """Returns actions for given state(s) as per current policy."""
-        state = np.reshape(state, [-1, self.state_size])
+        state = np.reshape(states, [-1, self.state_size])
         action = self.actor_local.model.predict(state)[0]
         return list(action + self.noise.sample())  # add some noise for exploration
 
