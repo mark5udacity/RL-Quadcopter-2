@@ -1,7 +1,8 @@
 import numpy as np
 
 from agents.model.ReplayBuffer import ReplayBuffer
-from agents.model.ddpg import Actor, Critic
+from agents.model.ddpg import Actor, Critic, OUNoise
+
 
 class DDPG():
     """Reinforcement Learning agent that learns using DDPG."""
