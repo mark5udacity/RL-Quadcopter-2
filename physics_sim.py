@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 import numpy as np
 import csv
 
@@ -22,9 +24,13 @@ def body_to_earth_frame(ii, jj, kk):
     # C^n_b
     return np.transpose(earth_to_body_frame(ii, jj, kk))
 
+PhysicsSim_Params = namedtuple('PhysicsSim_Params', 'init_pose init_velocities init_angle_velocities runtime');
 
 class PhysicsSim():
-    def __init__(self, init_pose=None, init_velocities=None, init_angle_velocities=None, runtime=5.):
+    def __init__(self, params):
+                 #init_pose=None, init_velocities=None, init_angle_velocities=None, runtime=5.):
+
+        init_pose, init_velocities, init_angle_velocities, runtime = params;
         self.init_pose = init_pose
         self.init_velocities = init_velocities
         self.init_angle_velocities = init_angle_velocities
