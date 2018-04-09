@@ -1,7 +1,7 @@
 import numpy as np
 
 from keras import layers, models, optimizers
-from keras.layers import Dropout
+from keras.layers import Dense, Dropout
 from keras import backend as K
 
 class Actor:
@@ -35,15 +35,15 @@ class Actor:
         states = layers.Input(shape=(self.state_size,), name='states')
 
         # Add hidden layers
-        net = layers.Dense(units=32, activation='relu')(states)
+        net = Dense(units=32, activation='relu')(states)
         net = Dropout(dropout_rate)(net)
-        net = layers.Dense(units=64, activation='relu')(net)
+        net = Dense(units=64, activation='relu')(net)
         net = Dropout(dropout_rate)(net)
-        net = layers.Dense(units=32, activation='relu')(net)
+        net = Dense(units=32, activation='relu')(net)
         net = Dropout(dropout_rate)(net)
 
         # Add final output layer with sigmoid activation
-        raw_actions = layers.Dense(units=self.action_size, activation='sigmoid',
+        raw_actions = Dense(units=self.action_size, activation='sigmoid',
             name='raw_actions')(net)
 
         # Scale [0, 1] output for each action dimension to proper range
@@ -92,14 +92,14 @@ class Critic:
         actions = layers.Input(shape=(self.action_size,), name='actions')
 
         # Add hidden layer(s) for state pathway
-        net_states = layers.Dense(units=32, activation='relu')(states)
+        net_states = Dense(units=32, activation='relu')(states)
         net_states = Dropout(dropout_rate)(net_states)
-        net_states = layers.Dense(units=64, activation='relu')(net_states)
+        net_states = Dense(units=64, activation='relu')(net_states)
 
         # Add hidden layer(s) for action pathway
-        net_actions = layers.Dense(units=32, activation='relu')(actions)
+        net_actions = Dense(units=32, activation='relu')(actions)
         net_actions = Dropout(dropout_rate)(net_actions)
-        net_actions = layers.Dense(units=64, activation='relu')(net_actions)
+        net_actions = Dense(units=64, activation='relu')(net_actions)
 
         # Try different layer sizes, activations, add batch normalization, regularizers, etc.
 
@@ -110,7 +110,7 @@ class Critic:
         # Add more layers to the combined network if needed
 
         # Add final output layer to prduce action values (Q values)
-        Q_values = layers.Dense(units=1, name='q_values')(net)
+        Q_values = Dense(units=1, name='q_values')(net)
 
         # Create Keras model
         self.model = models.Model(inputs=[states, actions], outputs=Q_values)
