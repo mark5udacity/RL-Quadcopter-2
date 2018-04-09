@@ -28,8 +28,10 @@ class Task():
 
     def get_reward(self):
         """Uses current pose of sim to return reward."""
-        reward = 1.-.3*(abs(self.sim.pose[:3] - self.target_pos)).sum()
-        return reward
+        target_closeness_reward = 1. - .3 * (abs(self.sim.pose[:3] - self.target_pos)).sum()
+
+        return target_closeness_reward \
+                 + self.sim.time # The longer the flight, the better!
 
     def step(self, rotor_speeds):
         """Uses action to obtain next state, reward, done."""
