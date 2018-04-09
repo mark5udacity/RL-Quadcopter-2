@@ -29,9 +29,25 @@ class Task():
     def get_reward(self):
         """Uses current pose of sim to return reward."""
         target_closeness_reward = 1. - .3 * (abs(self.sim.pose[:3] - self.target_pos)).sum()
+        # Severely penalize the helicopter having a 'body' velocity that's too large, regardless of direction
+        velocity_penalties = abs(self.sim.find_body_velocity()).sum()
 
-        return target_closeness_reward \
-                 + self.sim.time # The longer the flight, the better!
+        # per slack room, idea to minimize euler angles
+        euler_bias = 5
+        eulers_angle_penalty = abs(self.sim.pose[3:]).sum() - euler_bias
+
+        # episode ends when hitting the ground or running out of time.  Want to fly as long as possible.
+        flight_time = self.sim.time
+
+        total = target_closeness_reward \
+                 + flight_time \
+                 - eulers_angle_penalty \
+                 - velocity_penalties
+
+        #print('rewards: ', target_closeness_reward, velocity_penalties, eulers_angle_penalty, flight_time, total)
+        #print('rewards: ', total)
+        return total
+
 
     def step(self, rotor_speeds):
         """Uses action to obtain next state, reward, done."""
