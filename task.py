@@ -26,7 +26,7 @@ class Task():
         # Goal
         self.target_pos = target_pos if target_pos is not None else np.array([0., 0., 10.]) 
 
-    def get_reward(self):
+    def get_reward(self, rotor_speeds):
         """Uses current pose of sim to return reward."""
         target_closeness_reward = 1. - .3 * (abs(self.sim.pose[:3] - self.target_pos)).sum()
         # Severely penalize the helicopter having a 'body' velocity that's too large, regardless of direction
@@ -39,13 +39,19 @@ class Task():
         # episode ends when hitting the ground or running out of time.  Want to fly as long as possible.
         flight_time = self.sim.time
 
-        total = target_closeness_reward \
-                 + flight_time \
-                 - eulers_angle_penalty \
-                 - velocity_penalties
+        rotor_diff_penalty = np.std(rotor_speeds) # penalize big differences in rotor speed!
+
+        total = target_closeness_reward  \
+                 + flight_time           \
+                 - eulers_angle_penalty  \
+                 - velocity_penalties    \
+                 - rotor_diff_penalty
+
 
         #print('rewards: ', target_closeness_reward, velocity_penalties, eulers_angle_penalty, flight_time, total)
-        #print('rewards: ', total)
+        hyperbolic_activation = np.tanh(total)
+        #if (hyperbolic_activation > -1.):
+        #    print('Found rewards that crept above -1!: ', total, hyperbolic_activation)
         return total
 
 
@@ -55,7 +61,7 @@ class Task():
         pose_all = []
         for _ in range(self.action_repeat):
             done = self.sim.next_timestep(rotor_speeds) # update the sim pose and velocities
-            reward += self.get_reward() 
+            reward += self.get_reward(rotor_speeds)
             pose_all.append(self.sim.pose)
         next_state = np.concatenate(pose_all)
         return next_state, reward, done
