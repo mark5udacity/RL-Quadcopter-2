@@ -1,12 +1,15 @@
 import numpy as np
 
 from keras import layers, models, optimizers
+from keras.layers import Dropout
 from keras import backend as K
 
 class Actor:
     """Actor (Policy) Model."""
 
-    def __init__(self, state_size, action_size, action_low, action_high):
+    def __init__(self, state_size, action_size, action_low, action_high,
+                   dropout_rate = .33,
+                   learning_rate = .0001):
         """Initialize parameters and build model.
 
         Params
@@ -22,21 +25,22 @@ class Actor:
         self.action_high = action_high
         self.action_range = self.action_high - self.action_low
 
-        # Initialize any other variables here
+        self.build_model(dropout_rate, learning_rate)
 
-        self.build_model()
-
-    def build_model(self):
-        """Build an actor (policy) network that maps states -> actions."""
+    def build_model(self, dropout_rate, learning_rate):
+        """Build an actor (policy) network that maps states -> actions.
+        :param rate:
+        """
         # Define input layer (states)
         states = layers.Input(shape=(self.state_size,), name='states')
 
         # Add hidden layers
         net = layers.Dense(units=32, activation='relu')(states)
+        net = Dropout(dropout_rate)(net)
         net = layers.Dense(units=64, activation='relu')(net)
+        net = Dropout(dropout_rate)(net)
         net = layers.Dense(units=32, activation='relu')(net)
-
-        # Try different layer sizes, activations, add batch normalization, regularizers, etc.
+        net = Dropout(dropout_rate)(net)
 
         # Add final output layer with sigmoid activation
         raw_actions = layers.Dense(units=self.action_size, activation='sigmoid',
@@ -56,7 +60,7 @@ class Actor:
         # Incorporate any additional losses here (e.g. from regularizers)
 
         # Define optimizer and training function
-        optimizer = optimizers.Adam()
+        optimizer = optimizers.Adam(learning_rate)
         updates_op = optimizer.get_updates(params=self.model.trainable_weights, loss=loss)
         self.train_fn = K.function(
             inputs=[self.model.input, action_gradients, K.learning_phase()],
@@ -66,7 +70,7 @@ class Actor:
 class Critic:
     """Critic (Value) Model."""
 
-    def __init__(self, state_size, action_size):
+    def __init__(self, state_size, action_size, dropout_rate = .33, learning_rate = .0001):
         """Initialize parameters and build model.
 
         Params
@@ -79,9 +83,9 @@ class Critic:
 
         # Initialize any other variables here
 
-        self.build_model()
+        self.build_model(dropout_rate, learning_rate)
 
-    def build_model(self):
+    def build_model(self, dropout_rate, learning_rate):
         """Build a critic (value) network that maps (state, action) pairs -> Q-values."""
         # Define input layers
         states = layers.Input(shape=(self.state_size,), name='states')
@@ -89,10 +93,12 @@ class Critic:
 
         # Add hidden layer(s) for state pathway
         net_states = layers.Dense(units=32, activation='relu')(states)
+        net_states = Dropout(dropout_rate)(net_states)
         net_states = layers.Dense(units=64, activation='relu')(net_states)
 
         # Add hidden layer(s) for action pathway
         net_actions = layers.Dense(units=32, activation='relu')(actions)
+        net_actions = Dropout(dropout_rate)(net_actions)
         net_actions = layers.Dense(units=64, activation='relu')(net_actions)
 
         # Try different layer sizes, activations, add batch normalization, regularizers, etc.
@@ -110,7 +116,7 @@ class Critic:
         self.model = models.Model(inputs=[states, actions], outputs=Q_values)
 
         # Define optimizer and compile model for training with built-in loss function
-        optimizer = optimizers.Adam()
+        optimizer = optimizers.Adam(learning_rate)
         self.model.compile(optimizer=optimizer, loss='mse')
 
         # Compute action gradients (derivative of Q values w.r.t. to actions)
