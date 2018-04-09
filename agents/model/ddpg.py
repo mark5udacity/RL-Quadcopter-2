@@ -43,12 +43,12 @@ class Actor:
         net = Dropout(dropout_rate)(net)
 
         # Add final output layer with sigmoid activation
-        raw_actions = Dense(units=self.action_size, activation='sigmoid',
-            name='raw_actions')(net)
+        raw_action = Dense(units=1, activation='sigmoid', name='raw_actions')(net)
+        # Make output of all rotors stay the same...
+        raw_actions = layers.concatenate([raw_action, raw_action, raw_action, raw_action])
 
         # Scale [0, 1] output for each action dimension to proper range
-        actions = layers.Lambda(lambda x: (x * self.action_range) + self.action_low,
-            name='actions')(raw_actions)
+        actions = layers.Lambda(lambda x: (x * self.action_range) + self.action_low, name='actions')(raw_actions)
 
         # Create Keras model
         self.model = models.Model(inputs=states, outputs=actions)
@@ -109,7 +109,7 @@ class Critic:
 
         # Add more layers to the combined network if needed
 
-        # Add final output layer to prduce action values (Q values)
+        # Add final output layer to produce action values (Q values)
         Q_values = Dense(units=1, name='q_values')(net)
 
         # Create Keras model
