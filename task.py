@@ -41,17 +41,22 @@ class Task():
 
         rotor_diff_penalty = np.std(rotor_speeds) # penalize big differences in rotor speed!
 
+        height_reward = self.sim.pose[2] / 100. # reward going higher, since that's what we want! But not by more than distance
+
         total = target_closeness_reward  \
                  + flight_time           \
                  - eulers_angle_penalty  \
                  - velocity_penalties    \
-                 - rotor_diff_penalty
+                 - rotor_diff_penalty    \
+                 + height_reward
 
 
-        #print('rewards: ', target_closeness_reward, velocity_penalties, eulers_angle_penalty, flight_time, total)
-        hyperbolic_activation = np.tanh(total)
+        #print('rewards: ', target_closeness_reward, velocity_penalties, eulers_angle_penalty,
+        #      flight_time, rotor_diff_penalty, total)
+        #hyperbolic_activation = np.tanh(total)
         #if (hyperbolic_activation > -1.):
         #    print('Found rewards that crept above -1!: ', total, hyperbolic_activation)
+        #return hyperbolic_activation
         return total
 
 
